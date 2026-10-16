@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 — 2026-10-17
+
+- Restored “Quizlet Gravity” beneath the opening-screen logo. No loading message or spinner is shown.
+
 ## 1.0.1 — 2026-10-17
 
 - Opening screen shows only the gold Q on indigo, with no app title, loading text or spinner.

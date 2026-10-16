@@ -114,6 +114,13 @@ public final class MainActivity extends ComponentActivity {
         logo.setImageResource(R.drawable.ic_launcher_foreground);
         logo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         overlay.addView(logo, new LinearLayout.LayoutParams(dp(200), dp(200)));
+        TextView title = new TextView(this);
+        title.setText(R.string.app_name);
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(28);
+        title.setGravity(Gravity.CENTER);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        overlay.addView(title);
         message = new TextView(this);
         message.setTextColor(Color.WHITE);
         message.setTextSize(16);

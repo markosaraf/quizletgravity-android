@@ -4,7 +4,7 @@ Build verification covers Java compilation, Android resource processing, lint, U
 
 Please check:
 
-1. The launcher shows the gold Q on indigo. Opening the app shows only the logo, with no title, loading text or spinner, followed by the website without browser controls.
+1. The launcher shows the gold Q on indigo. After Android’s native splash, the opening screen shows the logo and “Quizlet Gravity” only, with no loading text or spinner, followed by the website without browser controls.
 2. Paste a Quizlet share message with a public set URL and import it. Confirm the editable cards are complete and start a game.
 3. Import a CSV or text file through the Android file picker. Switch back to pasted terms and try that too.
 4. Type answers, including accents. Confirm the keyboard leaves the input visible, and rotate the phone to check the game remains in place.
