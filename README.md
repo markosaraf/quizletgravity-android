@@ -7,7 +7,7 @@ An Android app for [quizletgravity.com](https://www.quizletgravity.com/), with a
 ## Install
 
 1. Open the latest release on your Android phone.
-2. Download `QuizletGravity-1.0.0.apk` from **Assets**.
+2. Download `QuizletGravity-1.0.1.apk` from **Assets**.
 3. Open the downloaded file. If Android asks, allow this installation from your browser/file manager.
 4. Open **Quizlet Gravity**.
 
@@ -23,7 +23,7 @@ Android 8.0 or newer and a current Android System WebView are required. Internet
 - The existing game’s Pause control is invoked when leaving the app, followed by WebView timer suspension.
 - An offline/error screen with retry, rather than a blank browser error page.
 - External links open in the browser. Only the exact HTTPS website domains open inside the app.
-- Adaptive and monochrome launcher icons, plus Android’s native splash screen.
+- Adaptive and monochrome launcher icons, plus a logo-only splash/loading screen with no text or loading animation.
 
 The app does not contain the Firecrawl API key or the website backend. Set imports use the existing website backend. Website analytics and its privacy terms still apply. Android WebView storage is separate from Chrome/Safari storage.
 

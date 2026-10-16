@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 — 2026-10-17
+
+- Opening screen shows only the gold Q on indigo, with no app title, loading text or spinner.
+- Connection failures still show a separate retry message. A stalled initial load times out after 30 seconds.
+
 ## 1.0.0 — 2026-10-17
 
 - Initial Android app for the live quizletgravity.com website.

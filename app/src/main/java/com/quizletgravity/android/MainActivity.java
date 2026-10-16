@@ -29,7 +29,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,17 +47,16 @@ public final class MainActivity extends ComponentActivity {
     private FrameLayout root;
     private LinearLayout overlay;
     private TextView message;
-    private ProgressBar progress;
     private Button retry;
     private boolean pageReady;
     private boolean failed;
     private boolean foreground;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private ValueCallback<Uri[]> fileCallback;
-    private final Runnable slowLoad = () -> {
+    private final Runnable loadTimeout = () -> {
         if (!pageReady && !failed) {
-            message.setText(R.string.slow_connection);
-            retry.setVisibility(View.VISIBLE);
+            webView.stopLoading();
+            showError();
         }
     };
 
@@ -116,28 +114,20 @@ public final class MainActivity extends ComponentActivity {
         logo.setImageResource(R.drawable.ic_launcher_foreground);
         logo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         overlay.addView(logo, new LinearLayout.LayoutParams(dp(200), dp(200)));
-        TextView title = new TextView(this);
-        title.setText(R.string.app_name);
-        title.setTextColor(Color.WHITE);
-        title.setTextSize(28);
-        title.setGravity(Gravity.CENTER);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        overlay.addView(title);
         message = new TextView(this);
         message.setTextColor(Color.WHITE);
         message.setTextSize(16);
         message.setGravity(Gravity.CENTER);
         message.setPadding(0, dp(16), 0, dp(24));
         message.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        message.setVisibility(View.GONE);
         overlay.addView(message);
-        progress = new ProgressBar(this);
-        progress.setIndeterminateTintList(ColorStateList.valueOf(getColor(R.color.gold)));
-        overlay.addView(progress, new LinearLayout.LayoutParams(dp(32), dp(32)));
         retry = new Button(this);
         retry.setText(R.string.retry);
         retry.setTextColor(getColor(R.color.navy));
         retry.setBackgroundTintList(ColorStateList.valueOf(getColor(R.color.gold)));
         retry.setOnClickListener(view -> loadHome());
+        retry.setVisibility(View.GONE);
         LinearLayout.LayoutParams buttonLayout = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         buttonLayout.topMargin = dp(24);
@@ -237,7 +227,7 @@ public final class MainActivity extends ComponentActivity {
             @Override public void onComplete(long requestId) {
                 if (view != webView || failed || isFinishing()) return;
                 pageReady = true;
-                handler.removeCallbacks(slowLoad);
+                handler.removeCallbacks(loadTimeout);
                 overlay.setVisibility(View.GONE);
             }
         });
@@ -247,21 +237,20 @@ public final class MainActivity extends ComponentActivity {
         failed = false;
         pageReady = false;
         overlay.setVisibility(View.VISIBLE);
-        message.setText(R.string.loading);
-        progress.setVisibility(View.VISIBLE);
+        message.setVisibility(View.GONE);
         retry.setVisibility(View.GONE);
-        handler.removeCallbacks(slowLoad);
-        handler.postDelayed(slowLoad, 15000);
+        handler.removeCallbacks(loadTimeout);
+        handler.postDelayed(loadTimeout, 30000);
         webView.loadUrl(NavigationPolicy.HOME);
     }
 
     private void showError() {
         failed = true;
         pageReady = false;
-        handler.removeCallbacks(slowLoad);
+        handler.removeCallbacks(loadTimeout);
         overlay.setVisibility(View.VISIBLE);
         message.setText(R.string.connection_error);
-        progress.setVisibility(View.GONE);
+        message.setVisibility(View.VISIBLE);
         retry.setVisibility(View.VISIBLE);
     }
 
