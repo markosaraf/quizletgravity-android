@@ -1,4 +1,4 @@
-# Quizlet Gravity for Android
+# Quizlet Gravity mobile apps
 
 An Android app for [quizletgravity.com](https://www.quizletgravity.com/), with a gold-on-indigo launcher icon and launch screen. The app displays the live mobile website in Android System WebView, so web improvements appear without reinstalling the app.
 
@@ -7,7 +7,7 @@ An Android app for [quizletgravity.com](https://www.quizletgravity.com/), with a
 ## Install
 
 1. Open the latest release on your Android phone.
-2. Download `QuizletGravity-1.1.0.apk` from **Assets**.
+2. Download `QuizletGravity-1.2.0.apk` from **Assets**.
 3. Open the downloaded file. If Android asks, allow this installation from your browser/file manager.
 4. Open **Quizlet Gravity**.
 
@@ -41,3 +41,9 @@ The opening carousel uses the full, unmodified square proportions from `quizlet-
 Reference: [Android adaptive icon guidance](https://developer.android.com/develop/ui/views/launch/icon_design_adaptive), [Android splash screens](https://developer.android.com/develop/ui/views/launch/splash-screen), [WebView file-access security](https://developer.android.com/privacy-and-security/risks/webview-unsafe-file-inclusion).
 
 This independent app is for quizletgravity.com; it is not an official Quizlet app.
+
+## Store releases and iOS
+
+The Android release targets API 36. The iPhone/iPad project is in [ios/](ios/README.md), with the same game and supplied logo variants. The repository name remains unchanged. See [store/README.md](store/README.md) for the submission package and remaining account, signing, screenshot and device-check requirements. An unsigned iOS CI archive is not an upload-ready IPA.
+
+[Support](https://markosaraf.github.io/quizletgravity-android/) · [Privacy policy](https://markosaraf.github.io/quizletgravity-android/privacy.html)

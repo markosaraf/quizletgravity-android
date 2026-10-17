@@ -1,3 +1,10 @@
+# 1.2.0 — store preparation
+
+- Android targets API 36 and keeps the existing release signing key.
+- Added native iPhone/iPad project with logo carousel, local website storage, file import and network retry.
+- Added support/privacy links inside the apps, public support pages, store artwork, listing copy and submission notes.
+- Added Xcode 26 simulator-build and unsigned device-archive CI. Apple signing and store submission remain separate steps.
+
 # Changelog
 
 ## 1.1.0 — 2026-10-17

@@ -7,7 +7,7 @@ group = project.main_group.new_group('QuizletGravity', 'QuizletGravity')
 Dir[File.join(root, 'QuizletGravity', '*.swift')].sort.each do |file|
   target.source_build_phase.add_file_reference(group.new_file(File.basename(file)))
 end
-%w[Assets.xcassets LaunchScreen.storyboard PrivacyInfo.xcprivacy].each do |file|
+%w[Assets.xcassets LaunchScreen.storyboard PrivacyInfo.xcprivacy AppFooter.js].each do |file|
   target.resources_build_phase.add_file_reference(group.new_file(file))
 end
 group.new_file('Info.plist')

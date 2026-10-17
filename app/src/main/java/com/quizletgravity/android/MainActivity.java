@@ -204,7 +204,20 @@ public final class MainActivity extends ComponentActivity {
             }
 
             @Override public void onPageCommitVisible(WebView view, String url) { revealPage(view, url); }
-            @Override public void onPageFinished(WebView view, String url) { revealPage(view, url); }
+            @Override public void onPageFinished(WebView view, String url) {
+                if (NavigationPolicy.isInternal(url)) {
+                    try (java.io.InputStream script = getAssets().open("app-footer.js")) {
+                        java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+                        byte[] buffer = new byte[2048];
+                        int length;
+                        while ((length = script.read(buffer)) != -1) bytes.write(buffer, 0, length);
+                        view.evaluateJavascript(bytes.toString(java.nio.charset.StandardCharsets.UTF_8.name()), null);
+                    } catch (java.io.IOException error) {
+                        android.util.Log.e("QuizletGravity", "Bundled support link could not load");
+                    }
+                }
+                revealPage(view, url);
+            }
 
             @Override public void onReceivedError(WebView view, WebResourceRequest request,
                                                    WebResourceError error) {

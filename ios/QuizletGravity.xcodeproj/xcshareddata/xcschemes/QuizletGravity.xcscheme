@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CD496E280350091CC56D74B7"
+               BlueprintIdentifier = "0B747C8D0752355B4E799CD9"
                BuildableName = "QuizletGravity.app"
                BlueprintName = "QuizletGravity"
                ReferencedContainer = "container:QuizletGravity.xcodeproj">
@@ -30,7 +30,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CD496E280350091CC56D74B7"
+            BlueprintIdentifier = "0B747C8D0752355B4E799CD9"
             BuildableName = "QuizletGravity.app"
             BlueprintName = "QuizletGravity"
             ReferencedContainer = "container:QuizletGravity.xcodeproj">
@@ -53,7 +53,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CD496E280350091CC56D74B7"
+            BlueprintIdentifier = "0B747C8D0752355B4E799CD9"
             BuildableName = "QuizletGravity.app"
             BlueprintName = "QuizletGravity"
             ReferencedContainer = "container:QuizletGravity.xcodeproj">
@@ -70,7 +70,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CD496E280350091CC56D74B7"
+            BlueprintIdentifier = "0B747C8D0752355B4E799CD9"
             BuildableName = "QuizletGravity.app"
             BlueprintName = "QuizletGravity"
             ReferencedContainer = "container:QuizletGravity.xcodeproj">

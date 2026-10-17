@@ -106,6 +106,10 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         guard let url = webView.url, isInternal(url) else { fail(); return }
+        if let scriptURL = Bundle.main.url(forResource: "AppFooter", withExtension: "js"),
+           let script = try? String(contentsOf: scriptURL, encoding: .utf8) {
+            webView.evaluateJavaScript(script, completionHandler: nil)
+        }
         let expected = generation
         // Two browser frames allow layout/paint before fading the native cover.
         webView.callAsyncJavaScript("await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));", arguments: [:], in: nil, in: .page) { [weak self] result in
