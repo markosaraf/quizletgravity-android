@@ -3,7 +3,7 @@
 ## Requirements
 
 - JDK 17 or 21
-- Android SDK Platform 35, Build Tools 35.0.0
+- Android SDK Platform 36, Build Tools 35.0.0
 - Android SDK path in `ANDROID_HOME` or an untracked `local.properties`
 
 The checked-in Gradle wrapper pins Gradle 8.11.1 and verifies its SHA-256 checksum.
