@@ -1,6 +1,9 @@
 package com.quizletgravity.android;
 
 import android.annotation.SuppressLint;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -27,7 +30,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +48,9 @@ public final class MainActivity extends ComponentActivity {
     private WebView webView;
     private FrameLayout root;
     private LinearLayout overlay;
+    private LogoCarouselView logo;
+    private ValueAnimator revealAnimation;
+    private int loadGeneration;
     private TextView message;
     private Button retry;
     private boolean pageReady;
@@ -110,10 +115,9 @@ public final class MainActivity extends ComponentActivity {
         overlay.setGravity(Gravity.CENTER);
         overlay.setPadding(dp(28), dp(28), dp(28), dp(28));
         overlay.setBackgroundColor(getColor(R.color.indigo));
-        ImageView logo = new ImageView(this);
-        logo.setImageResource(R.drawable.ic_launcher_foreground);
-        logo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        overlay.addView(logo, new LinearLayout.LayoutParams(dp(200), dp(200)));
+        overlay.setClickable(true);
+        logo = new LogoCarouselView(this);
+        overlay.addView(logo, new LinearLayout.LayoutParams(-1, dp(200)));
         TextView title = new TextView(this);
         title.setText(R.string.app_name);
         title.setTextColor(Color.WHITE);
@@ -230,28 +234,66 @@ public final class MainActivity extends ComponentActivity {
 
     private void revealPage(WebView view, String url) {
         if (failed || !NavigationPolicy.isInternal(url)) return;
+        int generation = loadGeneration;
         view.postVisualStateCallback(0, new WebView.VisualStateCallback() {
             @Override public void onComplete(long requestId) {
-                if (view != webView || failed || isFinishing()) return;
+                if (view != webView || failed || isFinishing() || generation != loadGeneration) return;
                 pageReady = true;
                 handler.removeCallbacks(loadTimeout);
-                overlay.setVisibility(View.GONE);
+                logo.setPageReady();
             }
         });
     }
 
+    private void finishIntro() {
+        if (failed || !pageReady || isFinishing() || revealAnimation != null) return;
+        int generation = loadGeneration;
+        revealAnimation = ValueAnimator.ofFloat(1f, 0f);
+        revealAnimation.setStartDelay(1000);
+        revealAnimation.setDuration(650);
+        revealAnimation.addUpdateListener(animation -> overlay.setAlpha((float) animation.getAnimatedValue()));
+        revealAnimation.addListener(new AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(Animator animation) {
+                revealAnimation = null;
+                if (failed || generation != loadGeneration) return;
+                overlay.setVisibility(View.GONE);
+                overlay.setAlpha(1f);
+                webView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+            }
+        });
+        revealAnimation.start();
+        if (!foreground && revealAnimation != null) revealAnimation.pause();
+    }
+
+    private void cancelReveal() {
+        if (revealAnimation != null) {
+            revealAnimation.removeAllListeners();
+            revealAnimation.removeAllUpdateListeners();
+            revealAnimation.cancel();
+            revealAnimation = null;
+        }
+        overlay.setAlpha(1f);
+    }
+
     private void loadHome() {
+        loadGeneration++;
+        cancelReveal();
         failed = false;
         pageReady = false;
+        webView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
         overlay.setVisibility(View.VISIBLE);
         message.setVisibility(View.GONE);
         retry.setVisibility(View.GONE);
         handler.removeCallbacks(loadTimeout);
         handler.postDelayed(loadTimeout, 30000);
+        logo.start(this::finishIntro);
         webView.loadUrl(NavigationPolicy.HOME);
     }
 
     private void showError() {
+        loadGeneration++;
+        cancelReveal();
+        logo.stop();
         failed = true;
         pageReady = false;
         handler.removeCallbacks(loadTimeout);
@@ -271,6 +313,9 @@ public final class MainActivity extends ComponentActivity {
 
     @Override protected void onPause() {
         foreground = false;
+        handler.removeCallbacks(loadTimeout);
+        if (logo != null) logo.pauseMotion();
+        if (revealAnimation != null) revealAnimation.pause();
         if (webView != null) {
             // Use the existing game's Pause control before freezing WebView timers. It stays
             // paused on return, so players choose when to continue instead of losing time.
@@ -289,9 +334,17 @@ public final class MainActivity extends ComponentActivity {
     @Override protected void onResume() {
         super.onResume();
         foreground = true;
+        if (!pageReady && !failed) {
+            handler.removeCallbacks(loadTimeout);
+            handler.postDelayed(loadTimeout, 30000);
+        }
+        if (logo != null) logo.resumeMotion();
+        if (revealAnimation != null) revealAnimation.resume();
         if (webView != null) { webView.resumeTimers(); webView.onResume(); }
     }
     @Override protected void onDestroy() {
+        cancelReveal();
+        if (logo != null) logo.stop();
         handler.removeCallbacksAndMessages(null);
         if (fileCallback != null) { fileCallback.onReceiveValue(null); fileCallback = null; }
         if (webView != null) {

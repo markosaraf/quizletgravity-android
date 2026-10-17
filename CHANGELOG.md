@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 — 2026-10-17
+
+- Added a carousel using all three alternate square colour combinations from the supplied artwork.
+- Once the website is ready to draw, the alternatives merge into gold-on-indigo, hold for one second and fade away over 650 ms.
+- Kept “Quizlet Gravity”, without loading text or spinner. Animation pauses in the background and respects Android's disabled-animation setting.
+
 ## 1.0.2 — 2026-10-17
 
 - Restored “Quizlet Gravity” beneath the opening-screen logo. No loading message or spinner is shown.

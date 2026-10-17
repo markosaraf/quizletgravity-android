@@ -7,7 +7,7 @@ An Android app for [quizletgravity.com](https://www.quizletgravity.com/), with a
 ## Install
 
 1. Open the latest release on your Android phone.
-2. Download `QuizletGravity-1.0.2.apk` from **Assets**.
+2. Download `QuizletGravity-1.1.0.apk` from **Assets**.
 3. Open the downloaded file. If Android asks, allow this installation from your browser/file manager.
 4. Open **Quizlet Gravity**.
 
@@ -23,7 +23,7 @@ Android 8.0 or newer and a current Android System WebView are required. Internet
 - The existing game’s Pause control is invoked when leaving the app, followed by WebView timer suspension.
 - An offline/error screen with retry, rather than a blank browser error page.
 - External links open in the browser. Only the exact HTTPS website domains open inside the app.
-- Adaptive and monochrome launcher icons, plus an opening screen with the logo and “Quizlet Gravity” only—no loading text or spinner.
+- Adaptive and monochrome launcher icons, plus an opening carousel of the supplied square colour variants and “Quizlet Gravity”. Once the website is drawable, the carousel morphs to gold-on-indigo, holds for one second and fades into the site. No loading message or spinner.
 
 The app does not contain the Firecrawl API key or the website backend. Set imports use the existing website backend. Website analytics and its privacy terms still apply. Android WebView storage is separate from Chrome/Safari storage.
 
@@ -35,6 +35,8 @@ The app does not contain the Firecrawl API key or the website backend. Set impor
 - Phone checks: [TESTING.md](TESTING.md).
 
 The starting artwork is `quizlet-q-chip-gold-on-indigo-3.svg`, supplied by the site owner. Its unrounded background is separated from the gold Q so Android can apply its own launcher shape. The foreground is kept inside the adaptive icon safe area. No raster logo is stretched or artificially rounded twice.
+
+The opening carousel uses the full, unmodified square proportions from `quizlet-q-chip-indigo-on-gold-3.svg`, `quizlet-q-chip-black-on-indigo3.svg`, `quizlet-q-chip-white-on-indigo-3.svg` and finally `quizlet-q-chip-gold-on-indigo-3.svg`. The source SVGs are in `artwork/`. Android draws their shared vector path directly. If the page is slow, the alternatives continue cycling. Errors stop the carousel and show retry. Android's disabled-animation setting is respected.
 
 Reference: [Android adaptive icon guidance](https://developer.android.com/develop/ui/views/launch/icon_design_adaptive), [Android splash screens](https://developer.android.com/develop/ui/views/launch/splash-screen), [WebView file-access security](https://developer.android.com/privacy-and-security/risks/webview-unsafe-file-inclusion).
 
