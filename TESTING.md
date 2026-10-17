@@ -4,7 +4,7 @@ Build verification covers Java compilation, Android resource processing, lint, U
 
 Please check:
 
-1. After Android’s native splash, the opening screen shows “Quizlet Gravity” and a carousel of indigo-on-gold, black-on-indigo and white-on-indigo square logos. It morphs to gold-on-indigo, holds for one second and fades to the loaded website. No loading text or spinner. Check once on a normal connection and once on a slow connection: the site must be drawable before the final morph begins.
+1. After Android’s native splash, the opening screen shows “Quizlet Gravity” and the first logos still for 0.67 seconds, then starts the carousel of indigo-on-gold, black-on-indigo and white-on-indigo square logos. It morphs to gold-on-indigo, holds for one second and fades to the loaded website. No loading text or spinner. Check once on a normal connection and once on a slow connection: the site must be drawable before the final morph begins. Repeating carousel passes must not repeat the initial delay.
 2. Paste a Quizlet share message with a public set URL and import it. Confirm the editable cards are complete and start a game.
 3. Import a CSV or text file through the Android file picker. Switch back to pasted terms and try that too.
 4. Type answers, including accents. Confirm the keyboard leaves the input visible, and rotate the phone to check the game remains in place.

@@ -2,6 +2,7 @@ import UIKit
 
 /// The supplied square artwork remains unrounded, including throughout the crossfade.
 final class IntroView: UIView {
+    private let startDelay: TimeInterval = 0.67
     private let pictures = ["LogoGoldBackground", "LogoBlack", "LogoWhite", "LogoGold"]
     private let chip = UIImageView()
     private let incoming = UIImageView()
@@ -65,7 +66,7 @@ final class IntroView: UIView {
         started = true
         if UIAccessibility.isReduceMotionEnabled {
             chip.image = UIImage(named: "LogoGold")
-        } else { cycle() }
+        } else { cycle(delay: startDelay) }
     }
 
     func pageReady() {
@@ -74,14 +75,14 @@ final class IntroView: UIView {
         if UIAccessibility.isReduceMotionEnabled { reveal() }
     }
 
-    private func cycle() {
+    private func cycle(delay: TimeInterval = 0) {
         guard !failed else { return }
         if ready { morph(); return }
         let next = (index + 1) % 3
         incoming.image = UIImage(named: pictures[next])
         incoming.alpha = 0
         incoming.transform = CGAffineTransform(translationX: bounds.width * 0.4, y: 0).scaledBy(x: 0.75, y: 0.75)
-        animate(duration: 0.8, animations: {
+        animate(duration: 0.8, delay: delay, animations: {
             self.chip.transform = CGAffineTransform(translationX: -self.bounds.width * 0.4, y: 0).scaledBy(x: 0.75, y: 0.75)
             self.chip.alpha = 0
             self.incoming.transform = .identity
@@ -119,14 +120,14 @@ final class IntroView: UIView {
         }) { [weak self] in self?.onReveal?() }
     }
 
-    private func animate(duration: TimeInterval, animations: @escaping () -> Void, completion: @escaping () -> Void) {
+    private func animate(duration: TimeInterval, delay: TimeInterval = 0, animations: @escaping () -> Void, completion: @escaping () -> Void) {
         let animator = UIViewPropertyAnimator(duration: duration, curve: .easeInOut, animations: animations)
         animator.addCompletion { [weak self] position in
             guard position == .end, self?.failed == false else { return }
             completion()
         }
         motion = animator
-        animator.startAnimation()
+        animator.startAnimation(afterDelay: delay)
         if UIApplication.shared.applicationState != .active { animator.pauseAnimation() }
     }
 

@@ -23,6 +23,7 @@ import java.util.List;
 final class LogoCarouselView extends View {
     private static final int INDIGO = Color.rgb(66, 85, 255);
     private static final int GOLD = Color.rgb(212, 175, 55);
+    private static final long START_DELAY_MS = 670L;
     private static final int[] BACKGROUNDS = {GOLD, INDIGO, INDIGO};
     private static final int[] FOREGROUNDS = {INDIGO, Color.BLACK, Color.WHITE};
     private enum Phase { CAROUSEL, MORPH, FINAL }
@@ -51,7 +52,7 @@ final class LogoCarouselView extends View {
         position = 0f;
         morph = 0f;
         phase = Phase.CAROUSEL;
-        if (ValueAnimator.areAnimatorsEnabled()) slide(2);
+        if (ValueAnimator.areAnimatorsEnabled()) slide(2, START_DELAY_MS);
         else settleWithoutMotion();
         invalidate();
     }
@@ -62,10 +63,11 @@ final class LogoCarouselView extends View {
         if (phase == Phase.FINAL) deliverFinalLogo();
     }
 
-    private void slide(int steps) {
+    private void slide(int steps, long startDelay) {
         if (!ValueAnimator.areAnimatorsEnabled()) { settleWithoutMotion(); return; }
         float start = position;
         motion = ValueAnimator.ofFloat(start, start + steps);
+        motion.setStartDelay(startDelay);
         motion.setDuration(800L * steps);
         motion.setInterpolator(new LinearInterpolator());
         motion.addUpdateListener(animation -> {
@@ -80,7 +82,7 @@ final class LogoCarouselView extends View {
             @Override public void onAnimationEnd(Animator animation) {
                 motion = null;
                 if (ready) morphToGold();
-                else slide(3); // All three alternatives, ending on white-on-indigo again.
+                else slide(3, 0); // All three alternatives, ending on white-on-indigo again.
             }
         });
         motion.start();

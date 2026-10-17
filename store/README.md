@@ -1,4 +1,4 @@
-# Store submission package — 1.2.0 (build 5)
+# Store submission package — 1.2.1 (build 6)
 
 Branding is unchanged. These files prepare a submission; neither store has reviewed or approved the app.
 
@@ -18,7 +18,7 @@ Branding is unchanged. These files prepare a submission; neither store has revie
 1. Create/verify the developer account in Google Play Console, then create **Quizlet Gravity**.
 2. Choose the appropriate game/education category and complete the console's content-rating, target-audience, ads, app-access and Data safety questions. Use DATA-INVENTORY.md as source material, not a blanket “no data collected” answer.
 3. Enable Play App Signing. Retain the private existing signing material outside this repository. If Google generates a new app-signing key, a Play installation may not update the existing directly installed APK without uninstalling it. To retain that compatibility, use Google's supported process to enrol the existing app-signing key and consider a separate upload key. Do not change the key casually.
-4. Upload `QuizletGravity-1.2.0.aab` to internal testing first. The APK is for direct installation, not the Play submission file.
+4. Upload `QuizletGravity-1.2.1.aab` to internal testing first. The APK is for direct installation, not the Play submission file.
 5. Add the provided listing text, icon and feature graphic, plus **real phone screenshots**. These have not been fabricated or captured without the owner's app-testing permission.
 6. If the personal developer account is subject to the new-account rule, complete the required closed test (at least 12 opted-in testers for 14 consecutive days) and apply for production access.
 7. Check the Play pre-launch report and complete the owner's device checklist before requesting production review.
