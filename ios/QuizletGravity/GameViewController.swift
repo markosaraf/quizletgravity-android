@@ -1,5 +1,6 @@
 import UIKit
 import WebKit
+import GameController
 
 final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDelegate {
     private let home = URL(string: "https://www.quizletgravity.com/")!
@@ -9,12 +10,15 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
     private var generation = 0
     private var loaded = false
     private var failed = false
+    private let pageBackground = UIColor(red: 11/255, green: 16/255, blue: 51/255, alpha: 1)
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(red: 66/255, green: 85/255, blue: 1, alpha: 1)
+        // The indigo launch screen is an overlay, not the persistent safe-area colour.
+        view.backgroundColor = pageBackground
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
+        configuration.defaultWebpagePreferences.preferredContentMode = .mobile
         // No privileged JavaScript bridge or shared native credentials.
         webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
@@ -22,6 +26,12 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
         webView.allowsBackForwardNavigationGestures = true
         webView.isOpaque = false
         webView.backgroundColor = view.backgroundColor
+        webView.scrollView.backgroundColor = pageBackground
+        webView.underPageBackgroundColor = pageBackground
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardChanged), name: .GCKeyboardDidConnect, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardChanged), name: .GCKeyboardDidDisconnect, object: nil)
+        configureInputLayout()
         webView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(webView)
         NSLayoutConstraint.activate([
@@ -30,9 +40,29 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
             webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             webView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
-        NotificationCenter.default.addObserver(self, selector: #selector(inactive), name: UIApplication.willResignActiveNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(active), name: UIApplication.didBecomeActiveNotification, object: nil)
         loadGame()
+    }
+
+    @objc private func keyboardChanged() { configureInputLayout() }
+
+    private func configureInputLayout() {
+        let mode = GCKeyboard.coalesced == nil ? "touch" : "keyboard"
+        // Native-to-page presentation only: no privileged message handler or JS bridge.
+        let source = """
+        if (location.protocol === 'https:' && ['quizletgravity.com', 'www.quizletgravity.com'].includes(location.hostname)) {
+            document.documentElement.dataset.gravityInput = '\(mode)';
+            window.dispatchEvent(new Event('resize'));
+        }
+        """
+        let scripts = webView.configuration.userContentController
+        scripts.removeAllUserScripts()
+        scripts.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        if let url = Bundle.main.url(forResource: "AppFooter", withExtension: "js"),
+           let script = try? String(contentsOf: url, encoding: .utf8) {
+            scripts.addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        }
+        // Switching keyboards changes layout without reloading or losing the current game.
+        webView.evaluateJavaScript(source, completionHandler: nil)
     }
 
     private func showIntro() {
@@ -106,6 +136,7 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         guard let url = webView.url, isInternal(url) else { fail(); return }
+        configureInputLayout()
         if let scriptURL = Bundle.main.url(forResource: "AppFooter", withExtension: "js"),
            let script = try? String(contentsOf: scriptURL, encoding: .utf8) {
             webView.evaluateJavaScript(script, completionHandler: nil)
@@ -126,14 +157,15 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
     private func handle(_ error: Error) { if (error as NSError).code != NSURLErrorCancelled { fail() } }
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { fail() }
 
-    @objc private func inactive() {
+    func sceneWillResignActive() {
         intro?.pause()
         timeout?.invalidate()
         guard let url = webView.url, isInternal(url) else { return }
         webView.evaluateJavaScript("(function(){var b=Array.from(document.querySelectorAll('button')).find(function(b){return !b.disabled && (b.getAttribute('aria-label')==='Pause' || b.textContent.trim()==='Pause');});if(b)b.click();})()", completionHandler: nil)
     }
-    @objc private func active() {
+    func sceneDidBecomeActive() {
         intro?.resume()
+        configureInputLayout()
         if !loaded && !failed { armTimeout() }
     }
 

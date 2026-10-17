@@ -2,13 +2,27 @@ import UIKit
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        true
+    }
+}
+
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        let window = UIWindow(frame: UIScreen.main.bounds)
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        let window = UIWindow(windowScene: windowScene)
         window.rootViewController = GameViewController()
         window.makeKeyAndVisible()
         self.window = window
-        return true
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        (window?.rootViewController as? GameViewController)?.sceneDidBecomeActive()
+    }
+
+    func sceneWillResignActive(_ scene: UIScene) {
+        (window?.rootViewController as? GameViewController)?.sceneWillResignActive()
     }
 }

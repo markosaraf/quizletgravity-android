@@ -7,7 +7,7 @@ An Android app for [quizletgravity.com](https://www.quizletgravity.com/), with a
 ## Install
 
 1. Open the latest release on your Android phone.
-2. Download `QuizletGravity-1.2.2.apk` from **Assets**.
+2. Download `QuizletGravity-1.2.3.apk` from **Assets**.
 3. Open the downloaded file. If Android asks, allow this installation from your browser/file manager.
 4. Open **Quizlet Gravity**.
 
@@ -34,7 +34,7 @@ The app does not contain the Firecrawl API key or the website backend. Set impor
 - Building/signing: [BUILDING.md](BUILDING.md).
 - Phone checks: [TESTING.md](TESTING.md).
 
-The starting artwork is `quizlet-q-chip-gold-on-indigo-3.svg`, supplied by the site owner. Its unrounded background is separated from the gold Q so Android can apply its own launcher shape. The foreground is kept inside the adaptive icon safe area. No raster logo is stretched or artificially rounded twice.
+The launcher artwork on Android and iPhone/iPad is `quizlet-q-chip-large-gold-on-indigo-3.svg`, supplied by the site owner. Its unrounded background is separated from the gold Q so Android can apply its own launcher shape. The SVG is mapped to the visible 72-point area of Android's adaptive icon, with the surrounding system movement padding retained. iOS receives the same full square and applies its own corners. The carousel keeps the original smaller logo variants.
 
 On both Android and iOS, the opening screen first shows only the original gold-on-indigo logo and “Quizlet Gravity” for 0.67 seconds. The carousel cards appear and start moving afterwards. It uses the full, unmodified square proportions from `quizlet-q-chip-indigo-on-gold-3.svg`, `quizlet-q-chip-black-on-indigo3.svg`, `quizlet-q-chip-white-on-indigo-3.svg` and finally `quizlet-q-chip-gold-on-indigo-3.svg`. The source SVGs are in `artwork/`. Android draws their shared vector path directly. If the page is slow, the alternatives continue cycling without another start delay. Errors stop the carousel and show retry. Android's disabled-animation setting is respected.
 

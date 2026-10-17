@@ -7,6 +7,9 @@ const assets = path.join(root, 'ios/QuizletGravity/Assets.xcassets');
 const info = {version: 1, author: 'xcode'};
 const json = (p,v) => fs.writeFileSync(p, JSON.stringify(v,null,2)+'\n');
 (async () => {
+  // Launcher icons use the larger supplied Q; the opening carousel keeps its artwork.
+  const iconSource = path.join(root, 'artwork/quizlet-q-chip-large-gold-on-indigo-3.svg');
+  fs.copyFileSync(iconSource, path.join(root, 'artwork/app-icon-source.svg'));
   json(path.join(assets,'Contents.json'), {info});
   for (const [name, source] of Object.entries({LogoGold:'quizlet-q-chip-gold-on-indigo-3.svg',LogoGoldBackground:'quizlet-q-chip-indigo-on-gold-3.svg',LogoBlack:'quizlet-q-chip-black-on-indigo3.svg',LogoWhite:'quizlet-q-chip-white-on-indigo-3.svg'})) {
     const dir=path.join(assets, name+'.imageset'); fs.mkdirSync(dir,{recursive:true});
@@ -29,4 +32,18 @@ const json = (p,v) => fs.writeFileSync(p, JSON.stringify(v,null,2)+'\n');
   }
   json(path.join(dir,'Contents.json'),{images,info});
   for(const [folder,size] of [['google-play',512],['app-store',1024]]) await sharp(path.join(root,'artwork/app-icon-source.svg')).resize(size,size).flatten().png().toFile(path.join(root,'store',folder,'app-icon.png'));
+  // Map the SVG's 31.2-point square onto Android's visible 72-point icon inside
+  // its 108-point adaptive canvas (18 points of system movement padding).
+  const svg = fs.readFileSync(iconSource, 'utf8');
+  const [, tx, ty, scale] = svg.match(/translate\(([\d.]+) ([\d.]+)\) scale\(([\d.]+)\)/);
+  const q = svg.match(/<path d="([^"]+)"/)[1];
+  const factor = 72 / 31.2;
+  const coordinate = value => Number(value.toFixed(4));
+  fs.writeFileSync(path.join(root, 'app/src/main/res/drawable/ic_launcher_foreground.xml'), `<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <group android:translateX="${coordinate(18 + Number(tx) * factor)}" android:translateY="${coordinate(18 + Number(ty) * factor)}" android:scaleX="${coordinate(Number(scale) * factor)}" android:scaleY="${coordinate(Number(scale) * factor)}">
+        <path android:fillColor="#D4AF37" android:pathData="${q}" />
+    </group>
+</vector>
+`);
 })();
