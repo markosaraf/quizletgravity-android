@@ -10,6 +10,9 @@ final class IntroView: UIView {
     private let message = UILabel()
     private let retry = UIButton(type: .system)
     private var motion: UIViewPropertyAnimator?
+    private var startTimer: Timer?
+    private var startTime: TimeInterval?
+    private var remainingStartDelay: TimeInterval?
     private var index = 0
     private var ready = false
     private var failed = false
@@ -20,7 +23,7 @@ final class IntroView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = UIColor(red: 66/255, green: 85/255, blue: 1, alpha: 1)
-        chip.image = UIImage(named: pictures[0])
+        chip.image = UIImage(named: "LogoGold")
         [chip, incoming].forEach {
             $0.contentMode = .scaleAspectFit
             $0.isAccessibilityElement = false
@@ -64,9 +67,26 @@ final class IntroView: UIView {
     func start() {
         guard !started else { return }
         started = true
-        if UIAccessibility.isReduceMotionEnabled {
-            chip.image = UIImage(named: "LogoGold")
-        } else { cycle(delay: startDelay) }
+        if !UIAccessibility.isReduceMotionEnabled {
+            remainingStartDelay = startDelay
+            scheduleCarouselStart()
+        }
+    }
+
+    private func scheduleCarouselStart() {
+        guard !failed, startTimer == nil, let delay = remainingStartDelay,
+              UIApplication.shared.applicationState == .active else { return }
+        startTime = ProcessInfo.processInfo.systemUptime
+        startTimer = Timer.scheduledTimer(withTimeInterval: max(0.001, delay), repeats: false) { [weak self] _ in
+            guard let self else { return }
+            self.startTimer = nil
+            self.startTime = nil
+            self.remainingStartDelay = nil
+            guard !self.failed else { return }
+            self.chip.image = UIImage(named: self.pictures[0])
+            // A cached page must not bypass the carousel during the opening hold.
+            self.cycle(firstSlide: true)
+        }
     }
 
     func pageReady() {
@@ -75,14 +95,14 @@ final class IntroView: UIView {
         if UIAccessibility.isReduceMotionEnabled { reveal() }
     }
 
-    private func cycle(delay: TimeInterval = 0) {
+    private func cycle(firstSlide: Bool = false) {
         guard !failed else { return }
-        if ready { morph(); return }
+        if ready && !firstSlide { morph(); return }
         let next = (index + 1) % 3
         incoming.image = UIImage(named: pictures[next])
         incoming.alpha = 0
         incoming.transform = CGAffineTransform(translationX: bounds.width * 0.4, y: 0).scaledBy(x: 0.75, y: 0.75)
-        animate(duration: 0.8, delay: delay, animations: {
+        animate(duration: 0.8, animations: {
             self.chip.transform = CGAffineTransform(translationX: -self.bounds.width * 0.4, y: 0).scaledBy(x: 0.75, y: 0.75)
             self.chip.alpha = 0
             self.incoming.transform = .identity
@@ -120,20 +140,40 @@ final class IntroView: UIView {
         }) { [weak self] in self?.onReveal?() }
     }
 
-    private func animate(duration: TimeInterval, delay: TimeInterval = 0, animations: @escaping () -> Void, completion: @escaping () -> Void) {
+    private func animate(duration: TimeInterval, animations: @escaping () -> Void, completion: @escaping () -> Void) {
         let animator = UIViewPropertyAnimator(duration: duration, curve: .easeInOut, animations: animations)
         animator.addCompletion { [weak self] position in
             guard position == .end, self?.failed == false else { return }
             completion()
         }
         motion = animator
-        animator.startAnimation(afterDelay: delay)
+        animator.startAnimation()
         if UIApplication.shared.applicationState != .active { animator.pauseAnimation() }
     }
 
-    func pause() { if motion?.state == .active { motion?.pauseAnimation() } }
-    func resume() { if motion?.state == .active { motion?.continueAnimation(withTimingParameters: nil, durationFactor: 1) } }
-    func stop() { motion?.stopAnimation(true); motion = nil }
+    func pause() {
+        if let startTime, let remainingStartDelay {
+            self.remainingStartDelay = max(0, remainingStartDelay - (ProcessInfo.processInfo.systemUptime - startTime))
+            startTimer?.invalidate()
+            startTimer = nil
+            self.startTime = nil
+        }
+        if motion?.state == .active { motion?.pauseAnimation() }
+    }
+
+    func resume() {
+        if remainingStartDelay != nil { scheduleCarouselStart(); return }
+        if motion?.state == .active { motion?.continueAnimation(withTimingParameters: nil, durationFactor: 1) }
+    }
+
+    func stop() {
+        startTimer?.invalidate()
+        startTimer = nil
+        startTime = nil
+        remainingStartDelay = nil
+        motion?.stopAnimation(true)
+        motion = nil
+    }
 
     func showError() {
         failed = true

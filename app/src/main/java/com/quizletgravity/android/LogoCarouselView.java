@@ -26,7 +26,7 @@ final class LogoCarouselView extends View {
     private static final long START_DELAY_MS = 670L;
     private static final int[] BACKGROUNDS = {GOLD, INDIGO, INDIGO};
     private static final int[] FOREGROUNDS = {INDIGO, Color.BLACK, Color.WHITE};
-    private enum Phase { CAROUSEL, MORPH, FINAL }
+    private enum Phase { STARTING, CAROUSEL, MORPH, FINAL }
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path q;
@@ -51,7 +51,7 @@ final class LogoCarouselView extends View {
         ready = false;
         position = 0f;
         morph = 0f;
-        phase = Phase.CAROUSEL;
+        phase = Phase.STARTING;
         if (ValueAnimator.areAnimatorsEnabled()) slide(2, START_DELAY_MS);
         else settleWithoutMotion();
         invalidate();
@@ -79,6 +79,11 @@ final class LogoCarouselView extends View {
             invalidate();
         });
         motion.addListener(new AnimatorListenerAdapter() {
+            @Override public void onAnimationStart(Animator animation) {
+                // The delay shows the original single logo, not frozen carousel cards.
+                phase = Phase.CAROUSEL;
+                invalidate();
+            }
             @Override public void onAnimationEnd(Animator animation) {
                 motion = null;
                 if (ready) morphToGold();
@@ -158,7 +163,7 @@ final class LogoCarouselView extends View {
         float spacing = Math.min(112 * density, getWidth() * 0.35f);
         float cx = getWidth() / 2f;
         float cy = getHeight() / 2f;
-        if (phase == Phase.FINAL) {
+        if (phase == Phase.STARTING || phase == Phase.FINAL) {
             drawChip(canvas, cx, cy, size, INDIGO, GOLD, 1f);
             return;
         }

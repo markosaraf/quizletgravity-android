@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.2 — 2026-10-17
+
+- The first 0.67 seconds now show the original gold-on-indigo logo and title alone on Android and iOS.
+- Carousel cards appear only after this starting screen, instead of being visible but frozen during the delay.
+
 ## 1.2.1 — 2026-10-17
 
 - Android and iOS hold the opening artwork still for 0.67 seconds before starting the carousel.
