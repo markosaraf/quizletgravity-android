@@ -3,14 +3,14 @@
 Name: Quizlet Gravity
 
 Google Play short description (80 characters maximum):
-Turn your flashcards into a fast-paced typing game.
+Import Quizlet sets and turn your flashcards into a typing game.
 
 App Store subtitle (30 characters maximum):
 Flashcards meet a typing game
 
 Description:
 
-Give your study terms a new challenge with Quizlet Gravity. Match falling prompts by typing the correct answer before they reach the bottom.
+Import a public Quizlet set by pasting its link, paste your terms and definitions, or choose a CSV/TSV text file. Defend your planet from falling asteroids by typing the correct answers.
 
 Bring your own learning material:
 • Import a public Quizlet set by pasting its link, including links copied from the Quizlet sharing menu.

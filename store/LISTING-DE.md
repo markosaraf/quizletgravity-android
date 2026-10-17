@@ -3,14 +3,14 @@
 Name: Quizlet Gravity
 
 Google Play Kurzbeschreibung:
-Verwandle deine Lernkarten in ein schnelles Tippspiel.
+Importiere Quizlet-Sets und verwandle deine Lernkarten in ein Tippspiel.
 
 App Store Untertitel:
 Lernkarten als Tippspiel
 
 Beschreibung:
 
-Übe deine Lernbegriffe mit Quizlet Gravity als Spiel. Tippe die passende Antwort zu den fallenden Aufgaben, bevor sie den unteren Rand erreichen.
+Importiere ein öffentliches Quizlet-Set über seinen Link, füge deine Begriffe und Definitionen ein oder wähle eine CSV-/TSV-Textdatei. Verteidige deinen Planeten gegen fallende Asteroiden, indem du die richtigen Antworten tippst.
 
 Nutze dein eigenes Lernmaterial:
 • Importiere ein öffentliches Quizlet-Set über seinen Link, auch direkt aus dem Teilen-Menü von Quizlet.
