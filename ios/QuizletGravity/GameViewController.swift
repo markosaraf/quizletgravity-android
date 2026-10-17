@@ -108,7 +108,7 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
         guard let url = webView.url, isInternal(url) else { fail(); return }
         let expected = generation
         // Two browser frames allow layout/paint before fading the native cover.
-        webView.callAsyncJavaScript("await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));", arguments: [:], in: nil, contentWorld: .page) { [weak self] result in
+        webView.callAsyncJavaScript("await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));", arguments: [:], in: nil, in: .page) { [weak self] result in
             guard let self, self.generation == expected else { return }
             if case .failure = result { self.fail(); return }
             self.loaded = true
