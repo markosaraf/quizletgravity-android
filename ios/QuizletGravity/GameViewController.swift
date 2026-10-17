@@ -38,7 +38,10 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
             webView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            webView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            // Match Android's IME insets/adjustResize: resize the whole web viewport
+            // above the keyboard instead of letting WebKit pan down to the input.
+            // With the keyboard hidden this anchor is the bottom safe-area edge.
+            webView.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor)
         ])
         loadGame()
     }

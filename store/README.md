@@ -1,4 +1,4 @@
-# Store submission package — 1.2.3 (build 8)
+# Store submission package — Android 1.2.3 (8), iOS 1.2.4 (9)
 
 Branding is unchanged. These files prepare a submission; neither store has reviewed or approved the app.
 
@@ -8,7 +8,7 @@ Branding is unchanged. These files prepare a submission; neither store has revie
 - iPhone/iPad source, shared Xcode scheme, native carousel, privacy manifest and Xcode 26 build/archive workflow.
 - 512 px Play icon, 1024 px Apple icon, 1024 × 500 Play feature graphic.
 - English and German listing copy, reviewer instructions, privacy/data inventory.
-- Public support and privacy pages, also linked at the bottom of the game inside both apps.
+- Public support and privacy pages for the store listings; Android also includes footer links. The extra iOS footer was removed at the owner’s request.
 - Support email: quizletgravity@gmail.com.
 - Privacy URL: https://markosaraf.github.io/quizletgravity-android/privacy.html
 - Support URL: https://markosaraf.github.io/quizletgravity-android/

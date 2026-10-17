@@ -22,21 +22,54 @@
       html[data-gravity-input="keyboard"] .GravityModeLayout,
       html[data-gravity-input="keyboard"] .GravityModeLayout-main { min-height: calc(100vh - 3rem); }
       html[data-gravity-input="keyboard"] .GravityUIRow { flex-direction: row; gap: 2rem; }
+
+      /* Only the game occupies one viewport. Import/FAQ pages keep normal scrolling.
+         The native view itself shrinks above the keyboard, like Android adjustResize.
+         Flex shares that height between the actual header and the remaining game;
+         don't add a second 100vh/min-height below the header. */
+      html:has(.gravity-root > .GravityModeLayout),
+      html:has(.gravity-root > .GravityModeLayout) body {
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+      }
+      html[data-gravity-input] .gravity-root:has(> .GravityModeLayout) {
+        position: fixed;
+        inset: 0;
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      html[data-gravity-input] .gravity-root > .GravitySiteHeader { flex: 0 0 auto; }
+      html[data-gravity-input] .gravity-root > .GravityModeLayout {
+        flex: 1 1 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+      html[data-gravity-input] .GravityModeLayout-body,
+      html[data-gravity-input] .GravityModeLayout-main { min-height: 0; }
+      html[data-gravity-input] .GravityModeLayout-sidebar,
+      html[data-gravity-input] .GravityUIModal { overflow-y: auto; }
+      html[data-gravity-input] .GravitySplashView {
+        top: min(12.5rem, 20%);
+        bottom: 0;
+        overflow-y: auto;
+      }
+
+      /* Leave room for the answer field on shorter screens with a keyboard. */
+      @media (max-height: 600px) {
+        html[data-gravity-input] .GravityUIModal { padding-top: 1rem; }
+        html[data-gravity-input] .GravityTypingPrompt { min-height: 0; }
+        html[data-gravity-input] .GravityTypingPrompt-inputWrapper { margin-bottom: 0; }
+        html[data-gravity-input] .GravityCopyTermView { height: 100%; overflow-y: auto; }
+        html[data-gravity-input] .GravityCopyTermView-inner { margin-top: .75rem; }
+        html[data-gravity-input] .GravityCopyTermView-prompt,
+        html[data-gravity-input] .GravityCopyTermView-answer { margin-bottom: .75rem; }
+      }
     `;
     document.head.appendChild(style);
   }
-  if (document.getElementById('gravity-native-support')) return;
-  const footer = document.createElement('footer');
-  footer.id = 'gravity-native-support';
-  footer.style.cssText = 'padding:20px;text-align:center;background:#0b1033;color:white;font:14px/1.5 system-ui,sans-serif';
-  const privacy = document.createElement('a');
-  privacy.href = 'https://markosaraf.github.io/quizletgravity-android/privacy.html';
-  privacy.textContent = 'Privacy policy';
-  privacy.style.cssText = 'color:white;text-decoration:underline';
-  const support = document.createElement('a');
-  support.href = 'https://markosaraf.github.io/quizletgravity-android/';
-  support.textContent = 'Support';
-  support.style.cssText = privacy.style.cssText;
-  footer.append(privacy, document.createTextNode(' · '), support);
-  document.body.appendChild(footer);
+  document.getElementById('gravity-native-support')?.remove();
 })();
