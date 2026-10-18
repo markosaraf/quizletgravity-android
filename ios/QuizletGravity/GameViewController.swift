@@ -2,7 +2,7 @@ import UIKit
 import WebKit
 import GameController
 
-final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDelegate {
+final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     private let home = URL(string: "https://www.quizletgravity.com/")!
     private var webView: WKWebView!
     private var intro: IntroView?
@@ -19,7 +19,12 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
         configuration.defaultWebpagePreferences.preferredContentMode = .mobile
-        // No privileged JavaScript bridge or shared native credentials.
+        // Isolated-world UI notification only: no page-accessible native capabilities,
+        // input contents, credentials or arbitrary scripts cross this boundary.
+        configuration.userContentController.add(
+            WeakScriptMessageHandler(self), contentWorld: .defaultClient,
+            name: "gravityGameInputReady"
+        )
         webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -59,6 +64,8 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
         """
         let scripts = webView.configuration.userContentController
         scripts.removeAllUserScripts()
+        scripts.addUserScript(WKUserScript(source: Self.gameInputObserver,
+            injectionTime: .atDocumentEnd, forMainFrameOnly: true, in: .defaultClient))
         scripts.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         if let url = Bundle.main.url(forResource: "AppFooter", withExtension: "js"),
            let script = try? String(contentsOf: url, encoding: .utf8) {
@@ -66,6 +73,59 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
         }
         // Switching keyboards changes layout without reloading or losing the current game.
         webView.evaluateJavaScript(source, completionHandler: nil)
+    }
+
+    // WebKit permits keyboard presentation for focus initiated by the native client.
+    // The page's delayed React focus alone does not reliably open the iPad keyboard.
+    // Track input transitions (Play/Resume, copy answer, return to play), not
+    // mutations within one active field, so dismissing the keyboard stays possible.
+    private static let gameInputObserver = """
+    (() => {
+        if (!['https://quizletgravity.com', 'https://www.quizletgravity.com'].includes(location.origin)) return;
+        if (window.__gravityGameInputObserver) { window.__gravityGameInputObserver.scan(); return; }
+        let previousInput = null;
+        const scan = () => {
+            const game = document.querySelector('.GravityGameplayView:not(.has-splash):not(.is-gameOver)');
+            const input = game?.querySelector('textarea.GravityCopyTermView-input') ||
+                game?.querySelector('.GravityTypingPrompt.is-showingInput:not(.is-copyState) textarea.GravityTypingPrompt-input');
+            if (!input || input.disabled || input.readOnly || !input.getClientRects().length ||
+                getComputedStyle(input).visibility !== 'visible') {
+                previousInput = null;
+                return;
+            }
+            if (input === previousInput) return;
+            previousInput = input;
+            window.webkit.messageHandlers.gravityGameInputReady.postMessage('ready');
+        };
+        const observer = new MutationObserver(scan);
+        observer.observe(document.documentElement, {childList: true, subtree: true,
+            attributes: true, attributeFilter: ['class', 'hidden', 'disabled', 'readonly']});
+        window.__gravityGameInputObserver = {scan, observer};
+        scan();
+    })();
+    """
+
+    func userContentController(_ userContentController: WKUserContentController,
+                               didReceive message: WKScriptMessage) {
+        guard message.name == "gravityGameInputReady", message.body as? String == "ready",
+              message.frameInfo.isMainFrame, let frameURL = message.frameInfo.request.url,
+              isInternal(frameURL), let url = webView.url, isInternal(url),
+              view.window != nil, UIApplication.shared.applicationState == .active,
+              GCKeyboard.coalesced == nil else { return }
+        webView.evaluateJavaScript("""
+        (() => {
+            const game = document.querySelector('.GravityGameplayView:not(.has-splash):not(.is-gameOver)');
+            const input = game?.querySelector('textarea.GravityCopyTermView-input') ||
+                game?.querySelector('.GravityTypingPrompt.is-showingInput:not(.is-copyState) textarea.GravityTypingPrompt-input');
+            if (!input || input.disabled || input.readOnly || !input.getClientRects().length ||
+                getComputedStyle(input).visibility !== 'visible') return;
+            const start = input.selectionStart, end = input.selectionEnd;
+            // React may already have focused it without opening the keyboard.
+            if (document.activeElement === input) input.blur();
+            input.focus({preventScroll: true});
+            input.setSelectionRange(start, end);
+        })();
+        """, in: nil, in: .defaultClient, completionHandler: nil)
     }
 
     private func showIntro() {
@@ -140,6 +200,7 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         guard let url = webView.url, isInternal(url) else { fail(); return }
         configureInputLayout()
+        webView.evaluateJavaScript(Self.gameInputObserver, in: nil, in: .defaultClient, completionHandler: nil)
         if let scriptURL = Bundle.main.url(forResource: "AppFooter", withExtension: "js"),
            let script = try? String(contentsOf: scriptURL, encoding: .utf8) {
             webView.evaluateJavaScript(script, completionHandler: nil)
@@ -192,4 +253,14 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
     }
 
     deinit { timeout?.invalidate(); NotificationCenter.default.removeObserver(self) }
+}
+
+// The content controller owns its handler; avoid retaining the view controller.
+private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    private weak var delegate: WKScriptMessageHandler?
+    init(_ delegate: WKScriptMessageHandler) { self.delegate = delegate }
+    func userContentController(_ userContentController: WKUserContentController,
+                               didReceive message: WKScriptMessage) {
+        delegate?.userContentController(userContentController, didReceive: message)
+    }
 }
