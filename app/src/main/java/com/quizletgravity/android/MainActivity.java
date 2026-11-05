@@ -46,6 +46,8 @@ import androidx.core.view.WindowInsetsCompat;
 
 public final class MainActivity extends ComponentActivity {
     private WebView webView;
+    private String authVerifier, authState;
+    private long authStarted;
     private FrameLayout root;
     private LinearLayout overlay;
     private LogoCarouselView logo;
@@ -76,6 +78,28 @@ public final class MainActivity extends ComponentActivity {
                 callback.onReceiveValue(uri != null && "content".equals(uri.getScheme())
                         ? new Uri[]{uri} : null);
             });
+
+    private static String encoded(byte[] bytes) {
+        return android.util.Base64.encodeToString(bytes, android.util.Base64.URL_SAFE | android.util.Base64.NO_PADDING | android.util.Base64.NO_WRAP);
+    }
+    private void beginSignIn() {
+        try {
+            java.security.SecureRandom random = new java.security.SecureRandom();
+            byte[] v = new byte[32], state = new byte[32]; random.nextBytes(v); random.nextBytes(state);
+            authVerifier = encoded(v); authState = encoded(state); authStarted = System.currentTimeMillis();
+            String challenge = encoded(java.security.MessageDigest.getInstance("SHA-256").digest(authVerifier.getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://quizzlet-gravity-preview.vercel.app/native-auth?challenge=" + challenge + "&state=" + authState)));
+        } catch (Exception e) { Toast.makeText(this, "Could not open sign-in. Please try again.", Toast.LENGTH_LONG).show(); }
+    }
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Uri uri = intent.getData();
+        if (uri == null || !"quizzletgravitypreview".equals(uri.getScheme()) || !"auth".equals(uri.getHost()) || authState == null || !authState.equals(uri.getQueryParameter("state")) || System.currentTimeMillis()-authStarted > 600000) return;
+        String code = uri.getQueryParameter("code");
+        if (code == null || !code.matches("[A-Za-z0-9_-]{43}")) return;
+        String verifier = authVerifier; authState = null; authVerifier = null;
+        webView.loadUrl("https://quizzlet-gravity-preview.vercel.app/native-return#code=" + code + "&verifier=" + verifier);
+    }
 
     @Override public void onCreate(Bundle state) {
         SplashScreen.installSplashScreen(this);
@@ -152,6 +176,7 @@ public final class MainActivity extends ComponentActivity {
         webView.setBackgroundColor(getColor(R.color.navy));
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
         WebSettings settings = webView.getSettings();
+        settings.setUserAgentString(settings.getUserAgentString() + " QuizzletGravityPreview");
         // The first-party site needs JS and DOM storage for its game and remembered sets.
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -191,7 +216,10 @@ public final class MainActivity extends ComponentActivity {
         webView.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                if (NavigationPolicy.isInternal(url)) return false;
+                if (NavigationPolicy.isInternal(url)) {
+                    if (request.isForMainFrame() && "/native/start".equals(request.getUrl().getPath())) { beginSignIn(); return true; }
+                    return false;
+                }
                 if (request.isForMainFrame() && request.hasGesture()) openExternal(url);
                 return true;
             }

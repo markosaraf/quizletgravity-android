@@ -24,7 +24,7 @@ final class IntroView: UIView {
         super.init(frame: frame)
         backgroundColor = UIColor(red: 66/255, green: 85/255, blue: 1, alpha: 1)
         addSubview(carousel)
-        title.text = "Quizlet Gravity"
+        title.text = "Quizzlet Gravity"
         title.textColor = .white
         title.font = .boldSystemFont(ofSize: 28)
         title.textAlignment = .center

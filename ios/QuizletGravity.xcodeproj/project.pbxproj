@@ -295,7 +295,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.2.7;
-				PRODUCT_BUNDLE_IDENTIFIER = com.quizletgravity.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quizletgravity.preview.ios;
 				PRODUCT_NAME = QuizletGravity;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -319,7 +319,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.2.7;
-				PRODUCT_BUNDLE_IDENTIFIER = com.quizletgravity.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quizletgravity.preview.ios;
 				PRODUCT_NAME = QuizletGravity;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;

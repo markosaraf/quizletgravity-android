@@ -11,11 +11,11 @@ android {
     namespace = "com.quizletgravity.android"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.quizletgravity.android"
+        applicationId = "com.quizletgravity.preview.android"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.2.3"
+        versionCode = 1
+        versionName = "0.1.0-preview"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

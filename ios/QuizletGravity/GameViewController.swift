@@ -1,10 +1,13 @@
 import UIKit
 import WebKit
 import GameController
+import AuthenticationServices
+import CryptoKit
 
-final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
-    private let home = URL(string: "https://www.quizletgravity.com/")!
+final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, ASWebAuthenticationPresentationContextProviding {
+    private let home = URL(string: "https://quizzlet-gravity-preview.vercel.app/")!
     private var webView: WKWebView!
+    private var authSession: ASWebAuthenticationSession?
     private var intro: IntroView?
     private var timeout: Timer?
     private var generation = 0
@@ -18,6 +21,7 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
         view.backgroundColor = pageBackground
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
+        configuration.applicationNameForUserAgent = "QuizzletGravityPreview"
         configuration.defaultWebpagePreferences.preferredContentMode = .mobile
         // Isolated-world UI notification only: no page-accessible native capabilities,
         // input contents, credentials or arbitrary scripts cross this boundary.
@@ -57,7 +61,7 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
         let mode = GCKeyboard.coalesced == nil ? "touch" : "keyboard"
         // Native-to-page presentation only: no privileged message handler or JS bridge.
         let source = """
-        if (location.protocol === 'https:' && ['quizletgravity.com', 'www.quizletgravity.com'].includes(location.hostname)) {
+        if (location.protocol === 'https:' && ['quizzlet-gravity-preview.vercel.app', 'quizzlet-gravity-preview.vercel.app'].includes(location.hostname)) {
             document.documentElement.dataset.gravityInput = '\(mode)';
             window.dispatchEvent(new Event('resize'));
         }
@@ -81,7 +85,7 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
     // mutations within one active field, so dismissing the keyboard stays possible.
     private static let gameInputObserver = """
     (() => {
-        if (!['https://quizletgravity.com', 'https://www.quizletgravity.com'].includes(location.origin)) return;
+        if (!['https://quizzlet-gravity-preview.vercel.app', 'https://quizzlet-gravity-preview.vercel.app'].includes(location.origin)) return;
         if (window.__gravityGameInputObserver) { window.__gravityGameInputObserver.scan(); return; }
         let previousInput = null;
         const scan = () => {
@@ -173,13 +177,34 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
         intro?.showError()
     }
 
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor { view.window! }
+
+    private func beginSignIn() {
+        func random() -> String {
+            var bytes = [UInt8](repeating: 0, count: 32)
+            guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return "" }
+            return Data(bytes).base64EncodedString().replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
+        }
+        let verifier = random(), state = random()
+        guard !verifier.isEmpty, !state.isEmpty else { return }
+        let challenge = Data(SHA256.hash(data: Data(verifier.utf8))).base64EncodedString().replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
+        let url = URL(string: "https://quizzlet-gravity-preview.vercel.app/native-auth?challenge=\(challenge)&state=\(state)")!
+        authSession = ASWebAuthenticationSession(url: url, callbackURLScheme: "quizzletgravitypreview") { [weak self] callback, error in
+            guard error == nil, let callback, callback.host == "auth", let components = URLComponents(url: callback, resolvingAgainstBaseURL: false), components.queryItems?.first(where: {$0.name == "state"})?.value == state, let code = components.queryItems?.first(where: {$0.name == "code"})?.value, code.range(of: "^[A-Za-z0-9_-]{43}$", options: .regularExpression) != nil else { return }
+            DispatchQueue.main.async { self?.webView.load(URLRequest(url: URL(string: "https://quizzlet-gravity-preview.vercel.app/native-return#code=\(code)&verifier=\(verifier)")!)) }
+        }
+        authSession?.presentationContextProvider = self
+        authSession?.start()
+    }
+
     private func isInternal(_ url: URL) -> Bool {
-        url.scheme?.lowercased() == "https" && ["quizletgravity.com", "www.quizletgravity.com"].contains(url.host?.lowercased() ?? "") && url.user == nil && url.password == nil && (url.port == nil || url.port == 443)
+        url.scheme?.lowercased() == "https" && ["quizzlet-gravity-preview.vercel.app", "quizzlet-gravity-preview.vercel.app"].contains(url.host?.lowercased() ?? "") && url.user == nil && url.password == nil && (url.port == nil || url.port == 443)
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         guard let url = action.request.url else { decisionHandler(.cancel); return }
         if isInternal(url) {
+            if url.path == "/native/start" { beginSignIn(); decisionHandler(.cancel); return }
             if action.targetFrame == nil { webView.load(action.request); decisionHandler(.cancel) }
             else { decisionHandler(.allow) }
             return
@@ -234,18 +259,18 @@ final class GameViewController: UIViewController, WKNavigationDelegate, WKUIDele
     }
 
     func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
-        let alert = UIAlertController(title: "Quizlet Gravity", message: message, preferredStyle: .alert)
+        let alert = UIAlertController(title: "Quizzlet Gravity", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler() })
         present(alert, animated: true)
     }
     func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
-        let alert = UIAlertController(title: "Quizlet Gravity", message: message, preferredStyle: .alert)
+        let alert = UIAlertController(title: "Quizzlet Gravity", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in completionHandler(false) })
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler(true) })
         present(alert, animated: true)
     }
     func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
-        let alert = UIAlertController(title: "Quizlet Gravity", message: prompt, preferredStyle: .alert)
+        let alert = UIAlertController(title: "Quizzlet Gravity", message: prompt, preferredStyle: .alert)
         alert.addTextField { $0.text = defaultText }
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in completionHandler(nil) })
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler(alert.textFields?.first?.text) })

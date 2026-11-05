@@ -5,7 +5,7 @@ import java.net.URISyntaxException;
 
 /** Only the two exact first-party HTTPS hosts may be rendered inside the app. */
 final class NavigationPolicy {
-    static final String HOME = "https://www.quizletgravity.com/";
+    static final String HOME = "https://quizzlet-gravity-preview.vercel.app/";
 
     static boolean isInternal(String value) {
         if (value == null) return false;
@@ -15,8 +15,8 @@ final class NavigationPolicy {
             return "https".equalsIgnoreCase(uri.getScheme())
                     && uri.getRawUserInfo() == null
                     && (uri.getPort() == -1 || uri.getPort() == 443)
-                    && ("www.quizletgravity.com".equalsIgnoreCase(host)
-                        || "quizletgravity.com".equalsIgnoreCase(host));
+                    && ("quizzlet-gravity-preview.vercel.app".equalsIgnoreCase(host)
+                        || "quizzlet-gravity-preview.vercel.app".equalsIgnoreCase(host));
         } catch (URISyntaxException e) { return false; }
     }
 

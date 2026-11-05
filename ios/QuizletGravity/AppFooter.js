@@ -1,5 +1,5 @@
 (function () {
-  if (location.protocol !== 'https:' || !['quizletgravity.com', 'www.quizletgravity.com'].includes(location.hostname)) return;
+  if (location.protocol !== 'https:' || !['quizzlet-gravity-preview.vercel.app', 'quizzlet-gravity-preview.vercel.app'].includes(location.hostname)) return;
   if (!document.getElementById('gravity-native-layout')) {
     const style = document.createElement('style');
     style.id = 'gravity-native-layout';

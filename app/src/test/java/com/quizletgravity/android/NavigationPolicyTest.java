@@ -5,14 +5,14 @@ import static org.junit.Assert.*;
 
 public class NavigationPolicyTest {
     @Test public void acceptsOnlyExactFirstPartyHttpsHosts() {
-        assertTrue(NavigationPolicy.isInternal("https://www.quizletgravity.com/"));
-        assertTrue(NavigationPolicy.isInternal("https://quizletgravity.com/game?set=123"));
-        assertTrue(NavigationPolicy.isInternal("https://QUIZLETGRAVITY.COM:443/"));
-        for (String url : new String[]{null, "https://quizletgravity.com.evil.example/",
-                "https://evil.example/quizletgravity.com", "http://quizletgravity.com/",
-                "https://quizletgravity.com@evil.example/", "https://evil@quizletgravity.com/",
-                "https://quizletgravity.com:8443/", "javascript:alert(1)", "file:///etc/passwd",
-                "content://private/", "https://quizletgravity.com\\@evil.example"}) {
+        assertTrue(NavigationPolicy.isInternal("https://quizzlet-gravity-preview.vercel.app/"));
+        assertTrue(NavigationPolicy.isInternal("https://quizzlet-gravity-preview.vercel.app/game?set=123"));
+        assertTrue(NavigationPolicy.isInternal("https://QUIZZLET-GRAVITY-PREVIEW.VERCEL.APP:443/"));
+        for (String url : new String[]{null, "https://quizzlet-gravity-preview.vercel.app.evil.example/",
+                "https://evil.example/quizzlet-gravity-preview.vercel.app", "http://quizzlet-gravity-preview.vercel.app/",
+                "https://quizzlet-gravity-preview.vercel.app@evil.example/", "https://evil@quizzlet-gravity-preview.vercel.app/",
+                "https://quizzlet-gravity-preview.vercel.app:8443/", "javascript:alert(1)", "file:///etc/passwd",
+                "content://private/", "https://quizzlet-gravity-preview.vercel.app\\@evil.example"}) {
             assertFalse("Unexpectedly allowed: " + url, NavigationPolicy.isInternal(url));
         }
     }
