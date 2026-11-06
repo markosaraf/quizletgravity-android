@@ -39,6 +39,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.graphics.Insets;
+import androidx.browser.auth.AuthTabIntent;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -79,6 +80,18 @@ public final class MainActivity extends ComponentActivity {
                         ? new Uri[]{uri} : null);
             });
 
+    private final ActivityResultLauncher<Intent> authLauncher =
+            AuthTabIntent.registerActivityResultLauncher(this, result -> {
+                if (result.resultCode == AuthTabIntent.RESULT_OK) {
+                    completeSignIn(result.resultUri);
+                } else if (result.resultCode != AuthTabIntent.RESULT_CANCELED) {
+                    authState = null; authVerifier = null;
+                    Toast.makeText(this, "Sign-in could not be completed. Please try again.", Toast.LENGTH_LONG).show();
+                }
+                // Older browsers return CANCELED for a Custom Tab fallback.
+                // Its authenticated deep link is handled by onNewIntent instead.
+            });
+
     private static String encoded(byte[] bytes) {
         return android.util.Base64.encodeToString(bytes, android.util.Base64.URL_SAFE | android.util.Base64.NO_PADDING | android.util.Base64.NO_WRAP);
     }
@@ -88,12 +101,16 @@ public final class MainActivity extends ComponentActivity {
             byte[] v = new byte[32], state = new byte[32]; random.nextBytes(v); random.nextBytes(state);
             authVerifier = encoded(v); authState = encoded(state); authStarted = System.currentTimeMillis();
             String challenge = encoded(java.security.MessageDigest.getInstance("SHA-256").digest(authVerifier.getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://quizzlet-gravity-preview.vercel.app/native-auth?challenge=" + challenge + "&state=" + authState)));
+            new AuthTabIntent.Builder().build().launch(authLauncher,
+                    Uri.parse("https://quizzlet-gravity-preview.vercel.app/native-auth?challenge=" + challenge + "&state=" + authState),
+                    "quizzletgravitypreview");
         } catch (Exception e) { Toast.makeText(this, "Could not open sign-in. Please try again.", Toast.LENGTH_LONG).show(); }
     }
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Uri uri = intent.getData();
+        completeSignIn(intent.getData());
+    }
+    private void completeSignIn(Uri uri) {
         if (uri == null || !"quizzletgravitypreview".equals(uri.getScheme()) || !"auth".equals(uri.getHost()) || authState == null || !authState.equals(uri.getQueryParameter("state")) || System.currentTimeMillis()-authStarted > 600000) return;
         String code = uri.getQueryParameter("code");
         if (code == null || !code.matches("[A-Za-z0-9_-]{43}")) return;
